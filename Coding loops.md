@@ -37,9 +37,9 @@ The verifier does not fix code — it diagnoses and reports. The builder handles
 |---|---|
 | `prompts/app_spec.txt` | `/code-create-spec` |
 | `prompts/tickets.md` | `/code-create-spec` |
-| `prompts/builder.md` | `/code-build-loop` (this skill) |
-| `prompts/verifier.md` | `/code-build-loop` (this skill) |
-| `scripts/run_build_verify_loop.sh` | `/code-build-loop` (this skill) |
+| `prompts/builder.md` | `/code-build-loop` (this skill) — see [template](../templates/code-build-loop/prompts/builder.md) |
+| `prompts/verifier.md` | `/code-build-loop` (this skill) — see [template](../templates/code-build-loop/prompts/verifier.md) |
+| `scripts/run_build_verify_loop.sh` | `/code-build-loop` (this skill) — see [template](../templates/code-build-loop/scripts/run_build_verify_loop.sh) |
 
 ---
 

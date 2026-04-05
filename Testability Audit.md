@@ -73,9 +73,11 @@ Verification commands must not silently assume:
 
 ### `prompts/flows.md`
 
-Confirmed list of all user flows: spec-derived flows plus any entry points auto-discovered from existing source code (tagged `[auto-discovered]`). Written after user confirms coverage is complete.
+Confirmed list of all user flows: spec-derived flows plus any entry points auto-discovered from existing source code (tagged `[auto-discovered]`). Written after user confirms coverage is complete. See [example](../templates/code-testability-audit/examples/flows.md).
 
 ### `prompts/critical_paths.md`
+
+See [example](../templates/code-testability-audit/examples/critical_paths.md).
 
 One section per flow. For each function in the call chain:
 ```
