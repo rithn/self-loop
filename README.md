@@ -83,7 +83,7 @@ One outer iteration takes ~3 hours. Five iterations = up to 15 hours of autonomo
 
 ## How it's built
 
-Skills are Claude Code slash commands living in `~/.claude/commands/`. Shell scripts handle orchestration — `run_outer_loop.sh`, `run_build_verify_loop.sh`, `post_build.sh`. All scripts are pre-written templates, never generated at runtime. The system is composable: run one skill standalone or chain the full pipeline.
+Skills are Claude Code slash commands living in `~/.claude/commands/`. Shell scripts handle orchestration — `run_outer_loop.sh`, `run_build_verify_loop.sh`, `post_build.sh`. All scripts are pre-written templates (see [`templates/`](templates/)), never generated at runtime. The system is composable: run one skill standalone or chain the full pipeline.
 
 ---
 
