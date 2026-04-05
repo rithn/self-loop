@@ -22,11 +22,11 @@ Measured from git commit ratio: autonomous (`Implement TICKET-XXX`) vs. manual f
 
 | Project | Domain | Autonomous commits |
 |---------|--------|-----------|
-| Large Law Firm — Invoice OCR | Document extraction | ~20% |
-| CA Firm — Accounting Automation | CA firm workflows | ~40% |
-| Large Law Firm — TP Report Generator | Legal document generation | ~60% |
-| Large Insurance Conglomerate — Underwriting Agent | Insurance AI | ~70% |
-| InsurTech Startup — Document Fraud Detection | InsurTech | ~90% |
+| Large Accounting Firm — Invoice OCR *(Jan 2026)* | Document extraction | ~20% |
+| CA Firm — Accounting Automation *(Feb 2026)* | CA firm workflows | ~40% |
+| Financial Advisory Firm — Transfer Pricing Report Generator *(Feb 2026)* | Financial document generation | ~60% |
+| Large Insurance Conglomerate — Underwriting Agent *(Mar 2026)* | Insurance AI | ~70% |
+| InsurTech Startup — Document Fraud Detection *(Mar 2026)* | InsurTech | ~90% |
 
 Each project's failure modes were fed back into the pipeline before the next build. The system trains itself on real production feedback.
 
