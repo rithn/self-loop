@@ -109,7 +109,7 @@ If your success criteria are mostly about static components ("user can log in", 
 ## Purpose
 An insurance claims handler uploads a set of claim documents (ID proof, medical reports,
 invoices) and gets an AI-generated consistency report flagging contradictions and anomalies.
-Used to demo Livo AI's fraud detection capability to Go Digit at the 25 Mar meeting.
+Used to demo fraud detection capability to a large InsurTech player at an upcoming meeting.
 Earns trust in 30 seconds by showing a real contradiction with a clear explanation.
 
 ## The money-shot
@@ -145,7 +145,7 @@ exactly which documents conflict and why. If this output were vague or wrong, th
 
 ## Non-goals
 - No real claim documents — synthetic samples only
-- No Go Digit system integration
+- No client system integration
 - No mobile layout
 
 ## Max outer loop iterations

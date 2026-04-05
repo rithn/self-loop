@@ -1,65 +1,129 @@
-# Claude MD Scaffold Skill — Design
+# Claude MD Scaffold Skill (`/code-claude-md`)
 
-## Overview
-
-Recursively writes `CLAUDE.md` files across a project directory tree in **depth-first (DFS) order** — leaf directories first, then their parents, up to the root. Each `CLAUDE.md` documents exactly what is in its own folder. Parent files reference their children with `@child/CLAUDE.md` instead of duplicating content.
-
-The result is a self-contained, maintainable documentation layer that Claude Code can read to quickly orient itself in any subdirectory without needing to explore the whole tree.
+> Type `/code-claude-md [project path]` to recursively write `CLAUDE.md` files across a project tree — leaf directories first, parents last — so Claude Code can orient itself in any directory without reading the whole codebase.
 
 ---
 
-## Core Principle
+## What it does
 
-**Each `CLAUDE.md` owns only what is in its own directory.** Children are referenced, not summarised. This avoids drift: when a child changes, only that child's `CLAUDE.md` needs updating.
+Scans a project directory tree and writes a `CLAUDE.md` in every relevant directory, processing in **depth-first (DFS) post-order** — leaf directories first, then their parents, root last. Each file documents exactly what is in its own folder. Parent files reference children with the `@child/CLAUDE.md` syntax rather than duplicating content.
+
+The result is a self-contained, maintainable documentation layer. When a subdirectory changes, only that subdirectory's `CLAUDE.md` needs updating.
+
+---
+
+## Core principle
+
+**Each `CLAUDE.md` owns only its own directory.** Children are referenced, not summarised.
 
 ```
-root/CLAUDE.md          ← overview + @app/CLAUDE.md + @tests/CLAUDE.md + ...
+root/CLAUDE.md          ← overview + @app/CLAUDE.md + @tests/CLAUDE.md
 app/CLAUDE.md           ← app-level files + @routes/CLAUDE.md + @services/CLAUDE.md
 app/routes/CLAUDE.md    ← detailed content about route files (leaf)
 app/services/CLAUDE.md  ← detailed content about service files (leaf)
-tests/CLAUDE.md         ← test runner info + @unit/CLAUDE.md + @integration/CLAUDE.md
-...
 ```
 
 ---
 
-## What to Document (per directory)
+## Step 1 — Locate the project
 
-### Leaf directories
-- What each file does (function signatures, what it returns, key behaviours)
-- Any patterns, conventions, or gotchas specific to this folder
-- External dependencies (AWS, DB, etc.) if relevant
-
-### Intermediate directories
-- What the directory is for (1–2 sentences)
-- Any files that live directly in this dir (not in subdirs)
-- References to child CLAUDE.md files: `@subdir/CLAUDE.md`
-
-### Root directory
-- Project name + one-paragraph description (what it does, who it's for)
-- Stack (language, framework, DB, external services)
-- How to run the app
-- How to run tests
-- Key env vars (names only — not values)
-- References to all direct child CLAUDE.md files
+Asks for the project directory path, or uses the path argument if provided directly.
 
 ---
 
-## Directories to Skip
+## Step 2 — Scan and plan
 
-Do not write `CLAUDE.md` in:
+Scans the full directory tree and lists directories to document, sorted deepest to shallowest. Asks the user to confirm or adjust before writing anything.
+
+**Directories skipped:**
 - `node_modules/`, `.git/`, `__pycache__/`, `.venv/`, `venv/`, `dist/`, `build/`
-- Directories containing only generated/compiled output with no authoring value
-- `uploads/` or similar runtime data directories with no fixed structure
-- Any directory explicitly listed in `.gitignore` as generated
-
-Do write `CLAUDE.md` in directories that contain source code, tests, configuration, documentation, scripts, or assets that a developer would read or edit.
+- Runtime data directories (`uploads/`, `tmp/`, `cache/`) with no fixed source structure
+- Any directory listed in `.gitignore` as generated output
 
 ---
 
-## Child Reference Format
+## Step 3 — Write leaf `CLAUDE.md` files
 
-Use the `@path` syntax Claude Code recognises:
+For each leaf directory (no subdirectories getting their own `CLAUDE.md`):
+1. Reads all files in the directory
+2. Documents: what each file does (function signatures, return values, key behaviours), patterns or conventions specific to this folder, external dependencies (APIs, DBs, env vars), non-obvious gotchas
+
+Files are read in priority order: entry points → route definitions → data models → service/business logic → configuration → everything else. Binary files and files over 500 lines are skipped unless they are the primary source of information.
+
+---
+
+## Step 4 — Write intermediate `CLAUDE.md` files
+
+For each intermediate directory (has at least one child with a `CLAUDE.md`), deepest first:
+1. Reads only files directly in this directory (not recursing into subdirs)
+2. Documents: what the directory is for (1–2 sentences), any files that live directly here, references to child directories:
+   ```
+   ## Subdirectories
+   - @child-dir/CLAUDE.md
+   ```
+
+No content from child `CLAUDE.md` files is repeated.
+
+---
+
+## Step 5 — Write root `CLAUDE.md`
+
+Written last. Must include:
+1. Project name and description — what it does, who it's for, key context
+2. Stack — language, framework, DB, external services
+3. How to run — exact command(s)
+4. How to run tests — exact command(s)
+5. Key env vars — names and one-line descriptions (no values)
+6. Subdirectories — references to all direct children with `CLAUDE.md` files
+
+---
+
+## Step 6 — Handle existing `CLAUDE.md` files
+
+If a `CLAUDE.md` already exists:
+- Reads it first
+- Preserves manually written notes that are still accurate
+- Updates outdated or missing sections
+- Does not delete content without a clear reason
+
+Pass `--overwrite` to skip this check and write fresh.
+
+---
+
+## Step 7 — Summary
+
+```
+## CLAUDE.md Scaffold Complete
+
+Directories documented: N
+Files written:          N
+Files updated:          N
+Files skipped:          N (already accurate)
+
+Tree:
+  CLAUDE.md
+  app/
+    CLAUDE.md
+    routes/CLAUDE.md
+    services/CLAUDE.md
+  ...
+```
+
+---
+
+## Content quality rules
+
+- **Specific over generic** — name actual functions with signatures. "handles authentication" is wrong; "`authenticate_user(token) -> User | None` — validates JWT, returns user or raises 401" is right.
+- **No duplication** — if a child covers a topic, the parent references it, not repeats it
+- **No boilerplate** — skip openers like "This directory contains..." and just describe the contents
+- **Gotchas first** — non-obvious things that would waste a developer time are the most valuable content
+- **Keep it short** — a leaf `CLAUDE.md` should fit in a terminal window
+
+---
+
+## Child reference format
+
+Uses the `@path` syntax that Claude Code's context loading recognises:
 
 ```markdown
 ## Subdirectories
@@ -67,74 +131,4 @@ Use the `@path` syntax Claude Code recognises:
 - @services/CLAUDE.md
 ```
 
-Paths are relative to the parent `CLAUDE.md`'s location. Do not use absolute paths.
-
----
-
-## Execution Order (DFS)
-
-Process directories in post-order (children before parents):
-
-1. Recursively find all directories (skip the exclude list above)
-2. Sort by depth descending — deepest directories first
-3. Within the same depth, process in alphabetical order
-4. Write leaf `CLAUDE.md` files first
-5. When writing a parent, check which direct children have `CLAUDE.md` files and reference them
-
-This means by the time a parent `CLAUDE.md` is written, all child `CLAUDE.md` files already exist and can be referenced.
-
----
-
-## Reading Strategy (per directory)
-
-Before writing a directory's `CLAUDE.md`, read:
-- All files directly in that directory (not subdirectories)
-- For code files: functions, classes, key logic
-- For config files: what they configure
-- For log/data files: skip reading them; just note they are generated
-
-Prioritise reading in this order:
-1. Entry points / main files (main.py, index.ts, app.go, etc.)
-2. API / route definitions
-3. Data models
-4. Service / business logic
-5. Configuration files
-6. Everything else
-
-Do not read binary files, images, or files > 500 lines unless they are the primary source of information for that directory.
-
----
-
-## Content Quality Rules
-
-- **Specific over generic.** Name the actual functions and their signatures. Don't write "handles authentication" — write "`authenticate_user(token) -> User | None` — validates JWT, returns user or raises 401".
-- **No duplication.** If a child's `CLAUDE.md` covers a topic, the parent does not repeat it — just references it.
-- **No boilerplate.** Skip headers like "This directory contains..." — just say what's in it.
-- **Gotchas and non-obvious things** are the most valuable content. Document things that would take a developer time to discover from reading the code.
-- **Keep it short.** A leaf CLAUDE.md should fit in a terminal window. A root CLAUDE.md can be longer but should stay scannable.
-
----
-
-## Update vs Overwrite
-
-If a `CLAUDE.md` already exists in a directory:
-- Read the existing file first
-- Preserve any manually written notes or sections that are still accurate
-- Update sections that are outdated or missing
-- Do not delete content without reason
-
-If the user says `--overwrite` or equivalent: write fresh, ignore existing content.
-
----
-
-## Decisions
-
-| Decision | Choice |
-|---|---|
-| Processing order | DFS post-order (leaves first, root last) |
-| Child reference format | `@child/CLAUDE.md` relative path |
-| Parent content | Overview + own files + child references only |
-| Skipped directories | node_modules, .git, __pycache__, venv, dist, uploads, gitignored generated dirs |
-| Existing CLAUDE.md | Preserve + update (not overwrite by default) |
-| Binary/large files | Skip reading; note existence only |
-| Root CLAUDE.md | Stack, run commands, env vars, child references |
+Paths are relative to the parent `CLAUDE.md`'s location.
