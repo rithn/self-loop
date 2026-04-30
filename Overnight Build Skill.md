@@ -6,20 +6,21 @@
 
 ## What it does
 
-Takes a project idea (from argument or vault context) and runs the full overnight pipeline without asking questions. Reads client files, `projects.md`, and `company.md` first to understand the business purpose.
+Takes a project idea (from argument or vault context) and runs the full overnight pipeline without asking questions. Reads client files, `projects.md`, and `company.md` first to understand the business purpose. Operates in fully autonomous mode — no questions asked after initial context read.
 
-1. **Derives a project slug** and creates the directory at `~/Documents/{slug}/`
+1. **Derives a project slug** and creates the directory at `~/Documents/{slug}/` with a stub `scripts/run.sh` (TICKET-001 replaces it with the correct uvicorn command)
 2. **Copies AWS credentials** from the nearest project that has them in `.env`
 3. **Writes `prompts/app_spec.txt`** — full architecture, API design, DB schema, service logic, UI design, sample data
 4. **Writes `prompts/tickets.md`** — 15–25 atomic tickets, reconciled against the spec to confirm every endpoint is covered
-5. **Writes `prompts/builder.md`** — includes a ticket anchoring rule (builder implements ONLY the first unchecked ticket), server startup/health check pattern, ticket status update discipline, and `agent_notes.md` context persistence
-6. **Writes `prompts/verifier.md`** — includes a ticket status gate (verifier immediately fails if builder didn't mark ticket `[x]`), same server startup pattern, and commit-on-pass behaviour
-7. **Writes `scripts/post_build.sh`** — runs after all tickets complete: testability audit → app testing → UI testing, with logs going to `scripts/post-build-logs/`
-8. **Writes `scripts/heartbeat.sh`** — monitors the loop and restarts if stuck
-9. **Copies `run_build_verify_loop.sh`** from an existing project, verifies it has 5 required behaviours, and rewrites from scratch if any are missing
-10. **Git inits** the project and makes an initial commit
-11. **Starts the build-verify loop** in a named tmux session (1 ticket per cycle)
-12. **Starts the heartbeat monitor** in a second tmux pane
+5. **Resolves all placeholder values** before writing any prompt files — `{slug}`, `{project_dir}`, `{run-name}` are substituted with actual strings. Literal placeholders are never written into files.
+6. **Writes `prompts/builder.md`** — includes a ticket anchoring rule (builder implements ONLY the first unchecked ticket), server startup/health check pattern, ticket status update discipline, and `agent_notes.md` context persistence
+7. **Writes `prompts/verifier.md`** — includes a ticket status gate (verifier immediately fails if builder didn't mark ticket `[x]`), same server startup pattern, and commit-on-pass behaviour
+8. **Writes `scripts/post_build.sh`** — runs after all tickets complete: testability audit → app testing → UI testing, with logs going to `scripts/post-build-logs/`
+9. **Writes `scripts/heartbeat.sh`** — monitors the loop and restarts if stuck
+10. **Copies `run_build_verify_loop.sh`** from an existing project, verifies it has 5 required behaviours, and rewrites from scratch if any are missing
+11. **Git inits** the project and makes an initial commit
+12. **Starts the build-verify loop** in a named tmux session (1 ticket per cycle)
+13. **Starts the heartbeat monitor** in a second tmux pane
 
 You wake up to a working, tested demo.
 
@@ -31,7 +32,7 @@ The copied `run_build_verify_loop.sh` is checked for these after copying:
 
 1. **`env -u CLAUDECODE`** on every `claude` invocation — prevents nested session crash
 2. **Port 8000 freed before every cycle** — `lsof -ti:8000 | xargs kill -9`, followed by a check that the port is actually free before handing off to the builder
-3. **Stall detection** — tracks ticket count; if unchanged for `MAX_RETRIES` consecutive cycles, logs `ABORT` and touches `.done`
+3. **Stall detection** — tracks ticket count; if unchanged for `MAX_RETRIES` consecutive cycles, logs `ABORT` and touches `.done`. `MAX_RETRIES` defaults to 3, overridable via env var: `MAX_RETRIES=5 bash scripts/run_build_verify_loop.sh`
 4. **Dynamic build report path** — injects `Build report path: $BUILD_REPORT` at the end of both builder and verifier task strings so neither prompt hardcodes a path
 5. **Post-build hook** — when all tickets are marked `[x]`, executes `bash scripts/post_build.sh`
 

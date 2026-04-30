@@ -34,6 +34,12 @@ Each project's failure modes were fed back into the pipeline before the next bui
 
 ## Skills
 
+### Planning
+
+| Skill | What it does |
+|-------|-------------|
+| **[/plan-standup](Morning%20Standup%20Skill.md)** | Daily standup — reviews yesterday via git/email/calendar, time-blocks today, syncs calendar and HubSpot |
+
 ### Build pipeline
 
 | Skill | What it does |

@@ -4,6 +4,12 @@
 
 ---
 
+## Context read on startup
+
+Before doing anything else, the skill reads any available context files in the working directory — `Context System/projects.md`, `Context System/company.md`, and any client file in `Clients & Partners/` relevant to the project argument. Files that don't exist are silently skipped. If none are found, it proceeds directly to the scenario detection step.
+
+---
+
 ## What it does
 
 Takes a project idea or slug and runs the full pipeline — from goal setting to working, tested app — through up to N outer loop iterations. Each iteration runs the inner build loop, post-build testing chain, and then assesses progress against `goal.md` before deciding whether to continue.
@@ -26,14 +32,38 @@ See [goal-conversation.md](./goal-conversation.md) for the full conversation des
 
 ## Phase 2 — Outer loop (up to N iterations)
 
-The skill detects its scenario on startup:
+The skill detects its scenario through a two-level check on startup:
 
-| Scenario | Condition | Action |
+**Level 1 — does `goal.md` exist?**
+- No → run Phase 1 goal conversation, then scaffold
+- Yes → check Level 2
+
+**Level 2 — does `run_outer_loop.sh` exist?**
+- No → scaffold (skip goal conversation)
+- Yes → inspect previous run state:
+
+| Case | Condition | Action |
 |---|---|---|
-| A — Brand new | No `goal.md`, no project directory | Goal conversation → scaffold → loop |
-| B — Goal written, not built | `goal.md` exists, no `run_outer_loop.sh` | Skip goal conversation → scaffold → loop |
-| C — Resuming | Previous run fully completed | Ask how many more iterations → update MAX_ITERATIONS → loop |
-| D — Interrupted | Previous run incomplete | Calculate remaining iterations → loop |
+| A — Fully complete | Outer log ends with "Outer loop finished", no FAILED tickets | Prompt for more iterations → update `MAX_ITERATIONS` → append resume directive → loop |
+| B — Finished with failures | Outer log ends with "Outer loop finished" but FAILED tickets exist | Show summary of failed tickets, prompt: relaunch or abort? |
+| C — Interrupted | Outer log does NOT end with "Outer loop finished" | Calculate remaining iterations from log, update script, relaunch |
+
+**Case B user prompt:**
+> "Previous run finished but X ticket(s) failed: [list]. Options: 1. Relaunch — loop will retry failed tickets. 2. Abort — investigate manually before relaunching."
+
+Only proceeds if the user chooses relaunch. If they choose abort, the skill stops.
+
+### Resume — Case A detail
+
+When Case A triggers, before launching the loop the skill does two things:
+
+1. Updates `MAX_ITERATIONS` in `run_outer_loop.sh` to the new number the user requested
+2. Appends a **continue directive** to `prompts/spec_update_brief.md`:
+   > "The previous run completed all tickets successfully. Do NOT return Action: COMPLETE. Extend the app further — identify gaps, edge cases, polish, or new capabilities. Every new ticket must map to a specific success criterion from goal.md."
+
+This prevents the outer loop agent from reading the completed state and immediately exiting — it forces another round of extension work.
+
+---
 
 ### Each outer loop iteration
 
@@ -90,6 +120,12 @@ The skill detects its scenario on startup:
 ## Template-based scaffolding
 
 Shell scripts and agent prompts are pre-written templates stored in `~/.claude/templates/code-evolve/`. The skill copies and substitutes placeholders using `sed` — it never generates these files at runtime. This guarantees consistency across runs and makes scripts independently debuggable.
+
+**Template validation gate:** Before writing any files, the scaffold step checks that the template directory and scripts exist. If they are missing, it prints an explicit error and aborts — it does not attempt to generate the scripts from scratch.
+
+## Env var preflight before launch
+
+Before starting any tmux session, the skill sources `.env` if it exists, then checks every variable listed in `.env.required` is set. If any are missing, it prints a clear list and exits with an error rather than starting a loop that will silently fail mid-run.
 
 ```
 ~/.claude/templates/code-evolve/

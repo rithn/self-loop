@@ -109,7 +109,6 @@ If your success criteria are mostly about static components ("user can log in", 
 ## Purpose
 An insurance claims handler uploads a set of claim documents (ID proof, medical reports,
 invoices) and gets an AI-generated consistency report flagging contradictions and anomalies.
-Used to demo fraud detection capability to a large InsurTech player at an upcoming meeting.
 Earns trust in 30 seconds by showing a real contradiction with a clear explanation.
 
 ## The money-shot
