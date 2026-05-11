@@ -49,7 +49,7 @@ Each project's failure modes were fed back into the pipeline before the next bui
 | **[/code-build-loop](Coding%20loops.md)** | Sets up builder + verifier agent prompts and the build-verify loop script; one agent builds, one audits, ticket by ticket |
 | **[/code-app-testing](App%20Testing%20Skill.md)** | Generates and runs unit + integration tests from `critical_paths.md` post-build |
 | **[/code-ui-testing](UI%20Testing%20Skill.md)** | Playwright-based visual flow tests; screenshots on every meaningful state change |
-| **[/code-ui-improve](UI%20Improve%20Skill.md)** | Audits a running app for visual issues; severity-ranked report with fixes |
+| **[/code-ui-improve](UI%20Improve%20Skill/UI%20Improve%20Skill.md)** | Iterative UI improvement loop — one screen, one change; captures before/after screenshots and evaluates the result |
 | **[/code-overnight](Overnight%20Build%20Skill.md)** | Orchestrates the full pipeline — spec → tickets → build loop → tests — in a single overnight run |
 | **[/code-claude-md](Claude%20MD%20Scaffold%20Skill.md)** | Recursively writes CLAUDE.md files across a project so every agent has full context at every directory level |
 
